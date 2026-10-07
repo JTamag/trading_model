@@ -1,10 +1,9 @@
-# Quant Trading Project Plan
+# Quant Trading Project 
 
-Working plan based on our chat, 7 Oct 2026. This is a learning and research plan, not financial advice. Nothing here is guaranteed to make money.
 
 ## 1. Goal
 
-Build a quantitative model that produces daily trading signals, test it honestly, and only then risk real money. The goal is not to beat SPY by trading SPY. The goal is to find out, with rigorous validation, whether a model can beat a simple buy-and-hold of the S&P 500 after costs and tax. Finding "no edge" and being able to explain why is still a strong result for a future quant career.
+Build a quantitative model that produces daily trading signals, test it honestly, and only then risk real money. The goal is not to beat SPY by trading SPY. The goal is to find out, with rigorous validation, whether a model can beat a simple buy-and-hold of the S&P 500 after costs and tax. Finding "no edge" and being able to explain why is still a strong result for a possible future quant career.
 
 ## 2. Starting situation
 
@@ -42,7 +41,7 @@ Avoid: intraday trading, leverage, CFDs, and anything that requires watching cha
 - Step 2: go live with a small amount using fractional shares in 3-5 positions.
 - Alternative if single stocks feel too concentrated: a basket of 5-8 diversified ETFs with slower rotation (weeks to months).
 - Risk 0.5-1% of the account per trade. Cap simultaneous positions. Set a maximum-drawdown level at which I pause trading.
-- Note: the 1,200 EUR is concentrated in one stock (NBIS) right now. Position-sizing rules like the ones above are exactly what limits that kind of risk once the live phase starts.
+
 
 ## 6. Pipeline stages
 
@@ -64,19 +63,14 @@ Avoid: intraday trading, leverage, CFDs, and anything that requires watching cha
 - Paper trade for 1-3 months before any real money, and compare live results with the backtest.
 - Only go live if live behavior matches the backtest.
 
-## 8. Costs and tax to check
 
-- Trading 212 is commission-free, but spread and FX conversion (roughly 0.15% each way when I last checked, verify the current rate) add up to about 0.3% or more per round trip. The strategy's average gain per trade must clearly exceed this.
-- Portuguese tax treatment of short-term gains may be less favorable than long-term holding. Check current rules or ask an accountant before going live.
-- Check which instruments are available on my account and whether any are CFD-only. Avoid CFDs.
-
-## 9. Extra data (later, only if the baseline works)
+## 8. Extra data (later, only if the baseline works)
 
 - **News and earnings:** use a news API or filings, run headlines through a language model for a sentiment score, and add it as one more feature column. Most of the immediate price move happens in seconds, so realistic edge is in slower effects such as post-earnings drift. Historical news needs accurate timestamps or the backtest will cheat.
 - **Politician trades (STOCK Act disclosures):** available via Capitol Trades, Quiver Quantitative and the official disclosure sites. Weak as a standalone strategy because of the reporting delay (up to 45 days), vague value ranges and mixed evidence on whether copying works. Use only as an optional feature, timestamped by filing date, not trade date.
 - **Order book / order flow:** skip. Only matters for very short horizons and is expensive.
 
-## 10. Tools
+## 9. Tools
 
 - Python, Jupyter or VS Code, git repo from day one.
 - Libraries: `pandas`, `yfinance`, `scikit-learn`, `lightgbm`, `vectorbt` or `backtesting.py`.
@@ -84,7 +78,7 @@ Avoid: intraday trading, leverage, CFDs, and anything that requires watching cha
 - Alpaca paper account for practicing execution code (check Portugal eligibility).
 - Interactive Brokers if I later want live automation in the EU (Python API).
 
-## 11. Roadmap
+## 10. Roadmap
 
 | Phase | What | Rough time |
 | --- | --- | --- |
@@ -95,21 +89,18 @@ Avoid: intraday trading, leverage, CFDs, and anything that requires watching cha
 | 4 | Small live portfolio (3-5 positions) if live matches backtest | Month 5 onwards |
 | 5 | Optional: news, earnings, politician-trade features | After Phase 4 |
 
-## 12. Open questions to resolve
+## 11. Open questions to resolve
 
 - Which exact UCITS ticker is available in my Trading 212 account for the benchmark?
-- Which stocks support fractional shares, and what is the real spread and FX fee?
 - Does Trading 212 currently offer a usable API, or do I stay manual?
-- Portuguese tax rules for short-term gains.
-- Could this be my final-year dissertation? Ask my department.
 
-## 13. Reading list
+## 12. Reading list
 
 - *Advances in Financial Machine Learning* by Marcos Lopez de Prado (triple-barrier labels, purged cross-validation).
 - *Machine Learning for Algorithmic Trading* by Stefan Jansen (practical full pipeline).
 - For quant interviews: *Heard on the Street* and *A Practical Guide to Quantitative Finance Interviews*.
 - Probability, statistics and linear algebra refreshers.
 
-## 14. Next action
+## 13. Next action
 
 Write the starter script: download a configurable list of tickers plus SPY as the benchmark, compute returns, volatility and momentum features, and run the monthly top-10 baseline with costs.
