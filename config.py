@@ -1,6 +1,9 @@
 """Central settings"""
 from pathlib import Path
 
+ROOT = Path(__file__).parent
+DATA_DIR = ROOT / "data"
+FIG_DIR = ROOT / "figures"
 
 START = "2010-01-01"
 
@@ -21,7 +24,7 @@ UNIVERSE = [
 ]
 
 # Momentum baseline
-LOOPBACK = 126 #trading days, 6 months
+LOOKBACK = 126 #trading days, 6 months
 SKIP = 21 #trading days, skip most recent month
 TOP_N = 10 #top N stocks to trade
 TREND_WINDOW = 200 #market trend filter, hold cash if benchmark < its 200 avg

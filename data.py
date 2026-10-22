@@ -5,7 +5,7 @@ from config import BENCHMARK, DATA_DIR, START, UNIVERSE
 
 CACHE = DATA_DIR / "prices.csv"
 
-def get_prices(refresh:bool-> False) -> pd.DataFrame:
+def get_prices(refresh:bool = False) -> pd.DataFrame:
     """Adjusted close prices, one column per ticker
     The first call downloads from Yahoo Finance and caches to data/prices.csv.
     Later calls read the cache. Pass refresh=True to re-download
@@ -30,5 +30,5 @@ def get_prices(refresh:bool-> False) -> pd.DataFrame:
     if failed:
         print(f"Warning: no data for {failed}")
     DATA_DIR.mkdir(exist_ok=True)
-    prices.to_csv
+    prices.to_csv(CACHE)
     return prices

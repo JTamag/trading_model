@@ -26,13 +26,13 @@ def main(ticker: str = BENCHMARK) -> None:
     sigma = r.std()
     beyond_3 = (np.abs(r-r.mean())>3 * sigma ).mean()
     print(f"\n{ticker}: {len(r)} daily returns, {r.index[0].date()} to {r.index[-1].date()}")
-    print(f" annualised return (mean*252): {r.mean():6.1%}")
+    print(f" annualised return (mean*252): {r.mean()*252:6.1%}")
     print(f" annualised volatility: {sigma * np.sqrt(252):6.1%}")
     print(f" skew:                {stats.skew(r):6.2f} (normal= 0)")
     print(f" excess kurtosis:     {stats.kurtosis(r):6.2f} (normal = 0)")
     print(f" days beyond 3 sigma: {beyond_3:6.2%} (normal predicts 0.27%)")
     print(f" Worst 5 days:")
-    for d, v in r.nsmallest(5).items:
+    for d, v in r.nsmallest(5).items():
         print(f"  {d.date()}  {v: 7.2%}")
 
     # Figure 1 - Distribuition
