@@ -19,7 +19,7 @@ The first run downloads prices to data/prices.csv. Delete it to refresh.
 - data.py         download + cache
 - explore.py      distribution, volatility, autocorrelation
 - baseline.py     monthly top-N momentum, trend filter, cost-aware backtest
-- experiments.md  log of every idea tried
+- log.md  log of every idea tried
 
 ## Known limitations (keep this list honest and growing)
 - Universe = today's large caps, so survivorship bias inflates results.
