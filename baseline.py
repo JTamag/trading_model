@@ -15,6 +15,8 @@ Simplifications to be removed later on:
 
 """
 
+import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -24,56 +26,57 @@ from data import get_prices
 
 
 # Signals 
-def month_end_dates(index:pd.DatetimeIndex) -> pd.DatetimeIndex:
+def month_end_dates(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
     """Last day of each calendar month present in the index"""
     s = index.to_series()
-    return pd.DatetimeIndex(s.groupby([s.index.year,s.index.month]).max().values)
+    return pd.DatetimeIndex(s.groupby([s.index.year, s.index.month]).max().values)
 
-def momentum_signal(prices: pd.DataFrame, lookback:int,skip:int) -> pd.DataFrame:
-    """ Return from (t-skip-lookback) to (t-skip). Uses only data up to day t"""
-    return prices.shift(skip) / prices.shift(skip+lookback)-1
 
-def target_weights(prices, universe,top_n,lookback,skip,benchmark=None, trend_window=None):
+def momentum_signal(prices: pd.DataFrame, lookback: int, skip: int) -> pd.DataFrame:
+    """Return from (t-skip-lookback) to (t-skip). Uses only data up to day t"""
+    return prices.shift(skip) / prices.shift(skip + lookback) - 1
+
+
+def target_weights(prices, universe, top_n, lookback, skip, benchmark=None, trend_window=None):
     """Weights decided at the close of each month-end. NaN on all other days."""
-    mom = momentum_signal(prices[universe],lookback,skip)
+    mom = momentum_signal(prices[universe], lookback, skip)
     trend_ok = None
 
     if benchmark is not None and trend_window:
         b = prices[benchmark]
         trend_ok = b > b.rolling(trend_window).mean()
 
-    W = pd.DataFrame(np.nan,index=prices.index,columns=universe)
+    W = pd.DataFrame(np.nan, index=prices.index, columns=universe)
     for d in month_end_dates(prices.index):
         W.loc[d] = 0.0
         if trend_ok is not None and not trend_ok.loc[d]:
-            continue #downtrend : opt for cash
+            continue  # downtrend : opt for cash
         scores = mom.loc[d].dropna()
         if len(scores) < top_n:
-            continue # not enough info : opt for cash
-        W.loc[d,scores.nlargest(top_n).index] = 1.0/top_n
+            continue  # not enough info : opt for cash
+        W.loc[d, scores.nlargest(top_n).index] = 1.0 / top_n
 
     return W
 
-# Backtest
 
-def backtest(prices: pd.DataFrame, W : pd.DataFrame, cost_bps : float, delay : int) -> pd.DataFrame:
-    """ Daily gross and net returns.
-        Weights chosen at the close of day t only become positions `delay` rows later
-        (shift), so the strategy never trades on information it would not have had.
+# Backtest
+def backtest(prices: pd.DataFrame, W: pd.DataFrame, cost_bps: float, delay: int) -> pd.DataFrame:
+    """Daily gross and net returns.
+    Weights chosen at the close of day t only become positions `delay` rows later
+    (shift), so the strategy never trades on information it would not have had.
     """
     rets = prices[W.columns].pct_change().fillna(0.0)
     pos = W.ffill().fillna(0.0).shift(delay).fillna(0.0)
-    gross = (pos * rets).sum(axis = 1)
+    gross = (pos * rets).sum(axis=1)
     turnover = pos.diff().abs().sum(axis=1).fillna(0.0)
-    net = gross - turnover * cost_bps/1e4
-    return pd.DataFrame({"gross": gross, "net": net,"turnover":turnover})
+    net = gross - turnover * cost_bps / 1e4
+    return pd.DataFrame({"gross": gross, "net": net, "turnover": turnover})
 
 
 # Metrics
-
-def perf_stats(daily : pd.Series, turnover: pd.Series | None = None) -> dict:
-    eq = (1+daily).cumprod()
-    years = len(daily)/252
+def perf_stats(daily: pd.Series, turnover: pd.Series | None = None) -> dict:
+    eq = (1 + daily).cumprod()
+    years = len(daily) / 252
     out = {
         "CAGR": eq.iloc[-1] ** (1 / years) - 1,
         "Vol": daily.std() * np.sqrt(252),
@@ -86,15 +89,16 @@ def perf_stats(daily : pd.Series, turnover: pd.Series | None = None) -> dict:
 
     return out
 
-def run(prices: pd.DataFrame) -> tuple[pd.DataFrame,pd.DataFrame]:
+
+def run(prices: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Run all variants"""
-    universe = [c for c in prices.columns if c!= C.BENCHMARK]
+    universe = [c for c in prices.columns if c != C.BENCHMARK]
 
     W_plain = target_weights(prices, universe, C.TOP_N, C.LOOKBACK, C.SKIP)
-    W_trend = target_weights(prices, universe, C.TOP_N, C.LOOKBACK, C.SKIP, benchmark= C.BENCHMARK,trend_window= C.TREND_WINDOW)
+    W_trend = target_weights(prices, universe, C.TOP_N, C.LOOKBACK, C.SKIP, benchmark=C.BENCHMARK, trend_window=C.TREND_WINDOW)
 
-    bt_plain = backtest(prices,W_plain,C.COST_BPS_PER_SIDE,C.DELAY)
-    bt_trend = backtest(prices, W_trend,C.COST_BPS_PER_SIDE,C.DELAY)
+    bt_plain = backtest(prices, W_plain, C.COST_BPS_PER_SIDE, C.DELAY)
+    bt_trend = backtest(prices, W_trend, C.COST_BPS_PER_SIDE, C.DELAY)
 
     daily = pd.DataFrame({
         "Momentum (no costs)": bt_plain["gross"],
@@ -110,44 +114,69 @@ def run(prices: pd.DataFrame) -> tuple[pd.DataFrame,pd.DataFrame]:
     }
 
     # Comparisons over the same window: from the first day any strategy holds stocks
-
     first_pos = bt_plain.index[(bt_plain["gross"] != 0).argmax()]
     daily = daily.loc[first_pos:]
-    table = pd.DataFrame({k:perf_stats(daily[k],turnover.get(k,None)[daily.index] if k in turnover else None) for k in daily})
+    table = pd.DataFrame({k: perf_stats(daily[k], turnover.get(k, None)[daily.index] if k in turnover else None) for k in daily})
 
     return daily, table.T
 
 
 # Main
-def main() -> None:
+def main(argv=None) -> None:
+    parser = argparse.ArgumentParser(description="Momentum baseline backtest")
+    parser.add_argument("--save", metavar="NAME",
+                        help="save this run to results/exp_NNN_NAME/ (default: don't save)")
+    parser.add_argument("--note", default="", help="one line: what changed in this run")
+    parser.add_argument("--no-chart", action="store_true", help="with --save, skip saving chart")
+    args = parser.parse_args(argv)
+
     prices = get_prices()
-    daily,table = run(prices)
+    daily, table = run(prices)
     C.FIG_DIR.mkdir(exist_ok=True)
 
     fmt = table.copy()
 
-    for col in ["CAGR","Vol","MaxDD"]:
+    for col in ["CAGR", "Vol", "MaxDD"]:
         fmt[col] = fmt[col].map("{:.1%}".format)
     fmt["Sharpe"] = fmt["Sharpe"].map("{:.2f}".format)
     if "Turnover/yr" in fmt:
-        fmt["Turnover/yr"] = fmt["Turnover/yr"].map(lambda x : "" if pd.isna(x) else f"{x:.1f}x")
+        fmt["Turnover/yr"] = fmt["Turnover/yr"].map(lambda x: "" if pd.isna(x) else f"{x:.1f}x")
 
-    print(f"\nPeriod: {daily.index[0].date()} to {daily.index[-1].date()}")
-    print(f"Cost per side: {C.COST_BPS_PER_SIDE} bps | Top {C.TOP_N} | "
-          f"lookback {C.LOOKBACK}d skip {C.SKIP}d\n")
-    print(fmt.to_string())
-    print("\nReminder: the universe has survivorship bias, so strong numbers are NOT evidence of edge.") 
+    report = "\n".join([
+        f"Period: {daily.index[0].date()} to {daily.index[-1].date()}",
+        f"Cost per side: {C.COST_BPS_PER_SIDE} bps | Top {C.TOP_N} | "
+        f"lookback {C.LOOKBACK}d skip {C.SKIP}d",
+        "",
+        fmt.to_string(),
+        "",
+        "Reminder: the universe has survivorship bias, so strong numbers are NOT evidence of edge.",
+    ])
+    print("\n" + report)
 
-    eq = (1+daily).cumprod()
-    fig,ax = plt.subplots(2,1,figsize=(12,8),sharex = True,height_ratios=[3,1.5])
-    eq.plot(ax=ax[0],logy=True)
+    eq = (1 + daily).cumprod()
+    fig, ax = plt.subplots(2, 1, figsize=(12, 8), sharex=True, height_ratios=[3, 1.5])
+    eq.plot(ax=ax[0], logy=True)
     ax[0].set_title("Equity curves (start = 1, log scale)")
     (eq / eq.cummax() - 1).plot(ax=ax[1], legend=False)
     ax[1].set_title("Drawdowns")
     fig.tight_layout()
     fig.savefig(C.FIG_DIR / "baseline_equity.png", dpi=130)
-    print(f"Figure saved to {C.FIG_DIR / 'baseline_equity.png'}")
+    print(f"Scratch figure saved to {C.FIG_DIR / 'baseline_equity.png'}")
+
+    if args.save:
+        from experiment import save_run
+        save_run(
+            name=args.save,
+            table=table,
+            fig=None if args.no_chart else fig,
+            console_text=report,
+            note=args.note,
+            period=(daily.index[0], daily.index[-1]),
+            data_dates=(prices.index[0], prices.index[-1]),
+        )
+
     plt.show()
+
 
 if __name__ == "__main__":
     main()

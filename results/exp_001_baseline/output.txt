@@ -1,0 +1,21 @@
+SPY: 4226 daily returns, 2010-01-05 to 2026-10-22
+ annualised return (mean*252):  13.1%
+ annualised volatility:  17.1%
+ skew:                 -0.55 (normal= 0)
+ excess kurtosis:      12.43 (normal = 0)
+ days beyond 3 sigma:  1.42% (normal predicts 0.27%)
+ Worst 5 days:
+  2020-03-16  -11.59%
+  2020-03-12  -10.06%
+  2020-03-09   -8.13%
+  2011-08-08   -6.73%
+  2025-04-04   -6.03%
+
+Period: 2010-09-02 to 2026-10-22
+Cost per side: 20 bps | Top 10 | lookback 126d skip 21d
+
+                                       CAGR    Vol Sharpe   MaxDD Turnover/yr
+Momentum (no costs)                   21.7%  19.7%   1.10  -30.1%        6.8x
+Momentum (with costs)                 20.1%  19.7%   1.03  -30.2%        6.8x
+Momentum + trend filter (with costs)  13.0%  16.1%   0.84  -30.4%        6.8x
+Buy & hold SPY                        14.9%  16.9%   0.91  -33.7%

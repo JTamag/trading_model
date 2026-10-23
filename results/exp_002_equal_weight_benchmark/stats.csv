@@ -1,0 +1,6 @@
+strategy,cagr,vol,sharpe,max_drawdown,turnover_per_year
+Momentum (no costs),0.217,0.197,1.10,-0.301,6.8
+Momentum (with costs),0.201,0.197,1.03,-0.302,6.8
+Momentum + trend filter (with costs),0.130,0.161,0.84,-0.304,6.8
+Equal-weight universe,0.181,0.164,1.10,-0.315,
+Buy & hold SPY,0.149,0.169,0.91,-0.337,
