@@ -100,6 +100,7 @@ def run(prices: pd.DataFrame) -> tuple[pd.DataFrame,pd.DataFrame]:
         "Momentum (no costs)": bt_plain["gross"],
         "Momentum (with costs)": bt_plain["net"],
         "Momentum + trend filter (with costs)": bt_trend["net"],
+        "Equal-weight universe": prices[universe].pct_change().mean(axis=1).fillna(0.0),
         f"Buy & hold {C.BENCHMARK}": prices[C.BENCHMARK].pct_change().fillna(0.0),
     })
     turnover = {
