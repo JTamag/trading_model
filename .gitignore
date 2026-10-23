@@ -1,7 +1,22 @@
+# environments and secrets
 .venv/
-__pycache__/
-data/
-.ipynb_checkpoints/
 .env
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# data and models (regenerate, don't commit)
+data/
 *.pkl
 *.joblib
+
+# scratch output, overwritten on every run
+figures/
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
